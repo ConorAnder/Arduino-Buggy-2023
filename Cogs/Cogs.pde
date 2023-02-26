@@ -1,12 +1,40 @@
+import controlP5.*;
+import processing.net.*;
+
+ControlP5 cp5;
+Client arduino;
+
 float AngleStart = 0;
 float AngleBump = 0;
 float Speed = 1;
 color OrangeColor = color(180, 95, 10);
 color BlueColor = color(0, 80, 110);
+color RedColor = color(200, 0, 0);
+color GreenColor = color(0, 200, 0);
+boolean spin = false;
+int prevt;
+int currt;
   
 void setup() {
   size(800, 800);
   smooth();
+  prevt = 1;
+  currt = 1;
+  
+  cp5 = new ControlP5(this);
+  arduino = new Client(this, "192.168.203.232", 1300);
+
+  cp5.addButton("Go")
+    .setColorBackground(GreenColor)
+    .setValue(0)
+    .setPosition(500, 100)
+    .setSize(200, 200);
+     
+  cp5.addButton("Stop")
+    .setColorBackground(RedColor)
+    .setValue(0)
+    .setPosition(100, 500)
+    .setSize(200, 200);
 }
 
 void draw() {
@@ -19,6 +47,21 @@ void drawCog(int pos1, int pos2) {
   int diam = 400;
   float angle = AngleStart;
   
+  currt = second();
+  if (currt != 0 && prevt != 0 && currt % prevt != 0) {
+    arduino.write('h');
+    if (arduino.available() > 0) {
+      String message = arduino.readString();
+      String[] match = match(message, "^[1-9]$");
+      if (match != null) {
+        print("Stopping for obstacle at ");
+        print(message);
+        println(" cm");
+      }
+    }
+  }
+  prevt = currt;
+  
   fill(OrangeColor);
   ellipse(pos1, pos2, 4*diam/5, 4*diam/5);
   arc(pos1, pos2, diam, diam, angle, angle + (PI/5));
@@ -29,7 +72,27 @@ void drawCog(int pos1, int pos2) {
   
   fill(0);
   ellipse(pos1, pos2, diam/4, diam/4);
-  angle += Speed*AngleBump;
-  AngleStart += Speed*.01;
-  AngleBump += Speed*.005;
+  
+  if (spin) {
+    angle += Speed*AngleBump;
+    AngleStart += Speed*.01;
+    AngleBump += Speed*.005;
+  }
+}
+
+
+public void Go() {
+  if (arduino.active()) {
+    arduino.write("w");
+    spin = true;
+    println("Go");
+  }
+}
+
+public void Stop() {
+  if (arduino.active()) {
+    arduino.write("s");
+    spin = false;
+    println("Stop");
+  }
 }
