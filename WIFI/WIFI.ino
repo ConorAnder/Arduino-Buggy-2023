@@ -1,8 +1,9 @@
+#include <SPI.h>
 #include <WiFiNINA.h>
 
 const char SSID[] = "POCO X3 Pro";
 const char PASSWORD[] = "buggy2023";
-WiFiServer server(80);
+WiFiServer server(1300);
 bool start = false;
 
 const int FORWARD = 12;
@@ -20,8 +21,9 @@ volatile int Lstate;
 void setup() {
   Serial.begin(9600);
   WiFi.begin(SSID, PASSWORD);
+  delay(5000);
   IPAddress ip = WiFi.localIP();
-  Serial.print(ip);
+  //Serial.print(ip);
   server.begin();
 
   pinMode(FORWARD, OUTPUT);
@@ -41,7 +43,8 @@ void setup() {
 }
 
 void loop() {
-  WiFiClient client = server.available();
+  WiFiClient client = server.available();  
+    
   if (client.connected()) {
     char ch = client.read();
     if (ch == 'w') {
@@ -53,14 +56,19 @@ void loop() {
   }
 
   int dist = distance();
+  int data;
   if (dist < 10 || !start) {
     Lstate = 0;
     Rstate = 0;
   }
+
   else if (digitalRead(L_EYE) && digitalRead(R_EYE)) {
     Lstate = 150;
     Rstate = 150;
   }
+
+  client.print(dist);
+  Serial.print(dist);
 
   digitalWrite(FORWARD, HIGH);
   digitalWrite(BACKWARD, LOW);
