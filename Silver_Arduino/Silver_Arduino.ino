@@ -5,6 +5,7 @@ const char SSID[] = "POCO X3 Pro";
 const char PASSWORD[] = "buggy2023";
 WiFiServer server(1300);
 bool start = false;
+bool close = false;
 char ch;
 
 // Arduino Pins
@@ -78,6 +79,18 @@ void loop() {
   // WiFi
   WiFiClient client = server.available();
 
+  // Debugging
+  ch = Serial.read();
+  if (ch == 'w') {
+    start = true;
+    Serial.println("Go");
+  }
+
+  if (ch == 's') {
+    start = false;
+    Serial.println("Stop");
+  }
+
   if (client.connected()) {
     ch = client.read();
     if (ch == 'w') {
@@ -95,13 +108,15 @@ void loop() {
 
   // Ultrasonic
   int dist = distance();
+  if (dist == 0)
+    dist = 45;
 
   if (dist < 10) {
-    start = false;
+    close = true;
   }
 
   else {
-    start = true;
+    close = false;
   }
 
   if (dist > 9 && dist < 40) {
@@ -120,6 +135,9 @@ void loop() {
   calcVelocity();
 
   // Infrared Sensors
+  lSpeed = 150;
+  rSpeed = 150;
+
   if (!digitalRead(L_EYE)) {
     lSpeed = 150;
     rSpeed = 90;
@@ -131,17 +149,17 @@ void loop() {
   }
 
   // Update Motor State
-  if (start) {
+  if (start && !close) {
     digitalWrite(FORWARD, HIGH);
   }
 
-  else {
+  else if (!start || close) {
     digitalWrite(FORWARD, LOW);
   }
 
   // Update Motor Speeds
-  analogWrite(LEN, out * (lSpeed / rSpeed));
-  analogWrite(REN, out * (rSpeed / lSpeed));
+  analogWrite(LEN, out * (lSpeed / 150));
+  analogWrite(REN, out * (rSpeed / 150));
 }
 
 int distance() {
@@ -166,7 +184,7 @@ double PID(int distance) {
   prevError = currError;
   prevTime = currTime;
 
-  return output;
+  return -1 * output;
 }
 
 void calcVelocity() {
