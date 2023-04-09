@@ -1,6 +1,6 @@
 #include <vector>
 
-float max1, max2;
+int max1, max2;
 
 std::vector<float> angles, distances, a;
 
@@ -20,15 +20,17 @@ void loop() {
   }
 
   getPeaks(a, max1, max2);
-  Serial.println(String(max1) + " " + String(max2));
+  Serial.println(String(a[max1]) + " " + String(a[max2]));
 }
 
-void getPeaks(std::vector<float> distances, float& max1, float& max2) {
+void getPeaks(std::vector<float> distances, int& max1, int& max2) {
+  float max = 0;
   for (int i = 1; i < distances.size() - 1; i++) {
     if (distances[i - 1] < distances[i] && distances[i + 1] < distances[i]) {
-      if (distances[i] > max1) {
+      if (distances[i] > max) {
         max2 = max1;
-        max1 = distances[i];
+        max1 = i;
+        max = distances[i];
       }
     }
   }
