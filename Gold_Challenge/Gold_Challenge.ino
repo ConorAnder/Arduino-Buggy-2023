@@ -27,17 +27,12 @@ float gyrX, gyrY, gyrZ;
 float roll, pitch, yaw;
 
 void setup() {
-  // WiFi
   Serial.begin(9600);
-  WiFi.begin(SSID, PASSWORD);
-  delay(5000);
-  IPAddress ip = WiFi.localIP();
-  Serial.print(ip);
-  server.begin();
-
+  
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU!");
-    while (1);
+    while (1)
+      ;
   }
 
   pinMode(DATA1, OUTPUT);
@@ -55,6 +50,7 @@ void setup() {
 }
 
 void loop() {
+  
   if (IMU.gyroscopeAvailable()) {
     IMU.readGyroscope(gyrX, gyrY, gyrZ);
   }
@@ -69,59 +65,27 @@ void loop() {
   //yaw = filter.getYaw();
   yaw += (gyrZ + 3.11) * 0.001;
 
-  if (Serial.available() > 0) {
-    command = Serial.read();
-    while (Serial.available() > 0)
-      Serial.read();
-  }
+  //if (abs(yaw) > 360)
+  //yaw = 0;
 
-  if (command == 'w') {
-    digitalWrite(DATA1, HIGH);
-    digitalWrite(DATA2, LOW);
-    digitalWrite(DATA3, HIGH);
-    digitalWrite(DATA4, LOW);
-  }
+  digitalWrite(DATA1, LOW);
+  digitalWrite(DATA2, HIGH);
+  digitalWrite(DATA3, HIGH);
+  digitalWrite(DATA4, LOW);
+  Serial.println(abs(yaw));
 
-  else if (command == 'd') {
-    digitalWrite(DATA1, HIGH);
-    digitalWrite(DATA2, LOW);
-    digitalWrite(DATA3, LOW);
-    digitalWrite(DATA4, HIGH);
-  }
-
-  else if (command == 'a') {
-    digitalWrite(DATA1, LOW);
-    digitalWrite(DATA2, HIGH);
-    digitalWrite(DATA3, HIGH);
-    digitalWrite(DATA4, LOW);
-  }
-
-  else if (command == 's') {
-    digitalWrite(DATA1, LOW);
-    digitalWrite(DATA2, HIGH);
-    digitalWrite(DATA3, LOW);
-    digitalWrite(DATA4, HIGH);
-  }
-
-  else {
+  while (abs(yaw) > 106) {
     digitalWrite(DATA1, LOW);
     digitalWrite(DATA2, LOW);
     digitalWrite(DATA3, LOW);
     digitalWrite(DATA4, LOW);
+    Serial.println(abs(yaw));
+  }
+}
+  void Rincrement() {
+    RpulseCount++;
   }
 
-  if (abs(yaw) > 360)
-    yaw = 0;
-
-  if (yaw - prevYaw != 0)
-    Serial.println(yaw);
-  prevYaw = yaw;
-}
-
-void Rincrement() {
-  RpulseCount++;
-}
-
-void Lincrement() {
-  LpulseCount++;
-}
+  void Lincrement() {
+    LpulseCount++;
+  }
